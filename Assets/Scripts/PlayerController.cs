@@ -17,6 +17,7 @@ public class PlayerController : MonoBehaviour
     private float mx;
     private float my;
     private bool postjumpress;
+    private bool jump; 
 
 
     // PLAYER STATS
@@ -33,6 +34,7 @@ public class PlayerController : MonoBehaviour
         DEAD
     }
     public Playerstates Pstate;
+    public Playerstates prevstate;
     //private Playerstates prevstate;
 
 
@@ -43,21 +45,28 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        //Cursor.lockState = CursorLockMode.Locked;
+        rb = GetComponent<Rigidbody2D>();
+        Pstate = Playerstates.LIVING;
         UnityEngine.Cursor.visible = false;
         postjumpress = false;
+        jump = false;
 }
 
     // Start is called before the first frame update
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        Pstate = Playerstates.LIVING;
     }
+
+
+
+
 
     // Update is called once per frame
     void Update()
     {
+        //Debug.Log(postjumpress);
+        //Debug.Log(Pstate.ToString());
+
         // place different control settings in each case!!!
         mx = Input.GetAxisRaw("Horizontal");
 
@@ -77,16 +86,15 @@ public class PlayerController : MonoBehaviour
         //////////////////////////////////////////////////////////////////
         if (Input.GetKeyDown("q"))
         {   // TRANSFORM!!
-            Playerstates prevstate = Pstate;
+            prevstate = Pstate;
             if (Pstate == Playerstates.LIVING || Pstate == Playerstates.LIMINAL)
             {
+                Debug.Log("shitfuck");
                 Pstate = Playerstates.GHOST;
-            }
-            else if (Pstate == Playerstates.GHOST)
+            } else if (Pstate == Playerstates.GHOST)
             {
-                Playerstates Pstate = prevstate;
+                Pstate = prevstate;
             }
-
             Debug.Log(Pstate.ToString());
         }
 
@@ -98,12 +106,14 @@ public class PlayerController : MonoBehaviour
         {
             case Playerstates.LIVING:
                 // see default, move normal 
+                rb.gravityScale = 10;
                 if (postjumpress != true)
                 {
                     if (Input.GetKeyDown("space"))
                     {
+                        //Debug.Log("trying");
                         postjumpress = true;
-                        rb.AddForce(transform.up * JumpHeight, ForceMode2D.Impulse);
+                        jump = true;
                     }
                 }
                 if (Input.GetKeyDown("left shift"))
@@ -118,6 +128,7 @@ public class PlayerController : MonoBehaviour
                 break;
 
             case Playerstates.GHOST:
+                rb.gravityScale = 0;
                 my = Input.GetAxisRaw("Vertical");
                 // see everything, move GHOST, Closer to DEAD, Touch Ghost
 
@@ -135,25 +146,15 @@ public class PlayerController : MonoBehaviour
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     private void FixedUpdate()
     {
 
         rb.velocity = new Vector2(mx, my).normalized * PlayerSpeed;
-
+        if(jump == true)
+        {
+            jump = false;
+            rb.AddForce(transform.up * JumpHeight, ForceMode2D.Impulse);
+        }
     }
 
     private void ActiveHeldObj()
