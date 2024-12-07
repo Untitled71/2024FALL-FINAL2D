@@ -25,18 +25,19 @@ public class PlayerController : MonoBehaviour//, IPlayerController
         private CapsuleCollider2D clidr;
         private SpriteRenderer srpt;
 
-        //movement and control Logic
-        public GameObject renderPLAYER;
-        private Vector2 mouse;
-        public GameObject cursor;
+        // EXTERNAL REFERENCES
         public BoxCollider2D Groundcheck;
-    public LayerMask groundMask;
+        public LayerMask groundMask;
+        public GameObject renderPLAYER;
         public Sprite sALIVE;
         public Sprite sLIMINAL;
         public Sprite sGHOST;
+        public GameObject cursor;
+        private Vector2 mouse;
+
+        // MOVEMENT LOGIC
         private float mx;
         private float my;
-        private bool postjumpress;
         private bool grounded;
 
         [Range(0f, 1f)]
@@ -45,10 +46,9 @@ public class PlayerController : MonoBehaviour//, IPlayerController
         // PLAYER STATS
         public float PlayerLife = 3f;
         public float PlayerSpeed = 10f;
-    public float JumpSpeed = 5f;
-        private float JumpHeight = 100f;
+        public float JumpSpeed = 5f;
 
-        // States
+        // STATES (FSM)
         public enum Playerstates
         {
             LIVING,
@@ -71,7 +71,6 @@ public class PlayerController : MonoBehaviour//, IPlayerController
             srpt.sprite = sALIVE;
             Pstate = Playerstates.LIVING;
 
-            postjumpress = true;
             grounded = false;
             //groundMask = "Ground";
 
@@ -80,143 +79,138 @@ public class PlayerController : MonoBehaviour//, IPlayerController
 
     }
 
-  
 
 
     // MOST INPUTS:
-    // BY FRAMERATE TICK REFRESH
-    void Update()
-    {
-        mx = Input.GetAxisRaw("Horizontal");
-        my = Input.GetAxisRaw("Vertical");
-        //Debug.Log(postjumpress);
-        //Debug.Log(Pstate.ToString());
-
-        // place different control settings in each case!!!
-
-
-        // MOUSE /////////////////////////////////////////////////////////
-        //////////////////////////////////////////////////////////////////
-        mouse = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        cursor.transform.position = mouse;
-        //Debug.Log(mouse);
-
-        if (Input.GetMouseButtonDown(0))
+        // BY FRAMERATE TICK REFRESH
+        void Update()
         {
-            ActiveHeldObj();
-        }
+            mx = Input.GetAxisRaw("Horizontal");
+            my = Input.GetAxisRaw("Vertical");
 
-        // INPUTS ////////////////////////////////////////////////////////
-        //////////////////////////////////////////////////////////////////
-        if (Input.GetKeyDown("q"))
-        {   // TRANSFORM!!
-            if (Pstate == Playerstates.LIVING || Pstate == Playerstates.LIMINAL)
+            // MOUSE /////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////
+            mouse = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            cursor.transform.position = mouse;
+            if (Input.GetMouseButtonDown(0))
             {
-                prevstate = Pstate;
-                Pstate = Playerstates.GHOST;
-            } else if (Pstate == Playerstates.GHOST)
-            {
-                Pstate = prevstate;
+                ActiveHeldObj();
             }
-            Debug.Log(Pstate.ToString());
-        }
 
+
+
+            // INPUTS ////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////
+            if (Input.GetKeyDown("q"))
+            {   // TRANSFORM!!
+                if (Pstate == Playerstates.LIVING || Pstate == Playerstates.LIMINAL)
+                {
+                    prevstate = Pstate;
+                    Pstate = Playerstates.GHOST;
+                } else if (Pstate == Playerstates.GHOST)
+                {
+                    Pstate = prevstate;
+                }
+            }
+            if (Input.GetKeyDown("e"))
+            {   // TRANSFORM!!
+                if (Pstate == Playerstates.LIVING)
+                {
+                    Pstate = Playerstates.LIMINAL;
+                }
+                else 
+                {
+                    Pstate = Playerstates.LIVING;
+                }
+            }
 
 
     }
 
-    // BY PHYSICS TICK REFRESH
-    private void FixedUpdate()
-    {
-        checkground();
-
-        // SWITCH ////////////////////////////////////////////////////////
-        //////////////////////////////////////////////////////////////////
-        switch (Pstate)
+        // BY PHYSICS TICK REFRESH
+        private void FixedUpdate()
         {
-            case Playerstates.LIVING:
-                srpt.sprite = sALIVE;
-                clidr.enabled = true;
+            checkground();
 
-                friction();
-                // see default, move normal 
-                rb.gravityScale = 7f; 
-                if (Mathf.Abs(mx) > 0)
-                {
-                    rb.velocity = new Vector2(mx * PlayerSpeed, rb.velocity.y);
-                }
-                if (Mathf.Abs(my) > 0 && grounded)
-                {
-                    rb.velocity = new Vector2(rb.velocity.x, my * JumpSpeed);
-                }
+            // SWITCH ////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////
+            switch (Pstate)
+            {
+                case Playerstates.LIVING:
+                    srpt.sprite = sALIVE;
+                    clidr.enabled = true;
 
-
-                break;
-
-            case Playerstates.LIMINAL:
-                srpt.sprite = sLIMINAL;
-                clidr.enabled = true;
-
-
-                // see more, move normal ~slower/wobbly
-                // seen as crazy
-                rb.gravityScale = 4f; 
-                if (Mathf.Abs(mx) > 0)
-                {
-                    rb.velocity = new Vector2(mx * PlayerSpeed, rb.velocity.y);
-                }
-                if (Mathf.Abs(my) > 0 && grounded)
-                {
-                    rb.velocity = new Vector2(rb.velocity.x, my * JumpSpeed);
-                }
+                    friction();
+                    // see default, move normal 
+                    rb.gravityScale = 7f; 
+                    if (Mathf.Abs(mx) > 0)
+                    {
+                        rb.velocity = new Vector2(mx * PlayerSpeed, rb.velocity.y);
+                    }
+                    if (Mathf.Abs(my) > 0 && grounded)
+                    {
+                        rb.velocity = new Vector2(rb.velocity.x, my * JumpSpeed);
+                    }
 
 
-                break;
+                    break;
 
-            case Playerstates.GHOST:
-                srpt.sprite = sGHOST;
-                clidr.enabled = false;
+                case Playerstates.LIMINAL:
+                    srpt.sprite = sLIMINAL;
+                    clidr.enabled = true;
 
-                rb.gravityScale = 0;
-                // see everything, move GHOST, Closer to DEAD, Touch Ghost
-                // not seen by anyone alive
 
-                    rb.velocity = new Vector2(mx, my).normalized * PlayerSpeed;
+                    // see more, move normal ~slower/wobbly
+                    // seen as crazy
+                    rb.gravityScale = 4f; 
+                    if (Mathf.Abs(mx) > 0)
+                    {
+                        rb.velocity = new Vector2(mx * PlayerSpeed, rb.velocity.y);
+                    }
+                    if (Mathf.Abs(my) > 0 && grounded)
+                    {
+                        rb.velocity = new Vector2(rb.velocity.x, my * JumpSpeed);
+                    }
+
+
+                    break;
+
+                case Playerstates.GHOST:
+                    srpt.sprite = sGHOST;
+                    clidr.enabled = false;
+
+                    rb.gravityScale = 0;
+                    // see everything, move GHOST, Closer to DEAD, Touch Ghost
+                    // not seen by anyone alive
+
+                        rb.velocity = new Vector2(mx, my).normalized * PlayerSpeed;
     
 
-                break;
+                    break;
 
-            case Playerstates.DEAD:
-                // Zombie?
+                case Playerstates.DEAD:
+                    // Zombie?
 
-                break;
+                    break;
 
+            }
         }
-    }
-
-
-
-
-
-
-
 
 
 
 
 
     // FUNCTIONS
-    private void jump()
-    {
-        rb.AddForce(Vector3.up * JumpHeight);
-    }
-
-
+    // ACTIVES
     private void ActiveHeldObj()
     {
 
+
+
+
     }
 
+    // PASSIVES
     private void friction()
     {
         if (grounded && mx == 0 && my == 0)
@@ -230,13 +224,6 @@ public class PlayerController : MonoBehaviour//, IPlayerController
         grounded = Physics2D.OverlapAreaAll(Groundcheck.bounds.min, Groundcheck.bounds.max, groundMask).Length > 0;
     }
 
-    private void GatherInput()
-    {
-
-    }
-
-
- 
 
     // COLLISION HANDLING
     public void OnCollisionEnter2D(Collision2D collision)
@@ -262,43 +249,4 @@ public class PlayerController : MonoBehaviour//, IPlayerController
 }
 
 
-
-
-
-
-/*
-   public static float RemapFloat(float value, float from1, float to1, float from2, float to2)
-    {
-        return (value - from1) / (to2 - from1) * (to2 - from2)+from2;
-    }
-
-    IEnumerator SetJumpforce(Color c, float t)
-    {
-        while (t >= 0)
-        {
-
-            t -= speed;
-            percentage = RemapFloat(t, 0, time, 0, 1);
-            myMat.color = Color.Lerp(myMat.color, c, 1 - percentage);
-            yield return new WaitForSeconds(speed);
-        }
-        colorChange = false;
-
-    }
-
- 
-                 //when the player hits space, JUMP
-                /*
-                if ((Input.GetAxis("Jump") > .05f) && postjumpress == false)
-                { 
-                        Debug.Log("trying");
-                        postjumpress = true;
-                        jump();
-                    rb.AddForce(transform.up * JumpHeight, ForceMode2D.Impulse);
-                    //rb.AddForce(Vector3.up * JumpHeight);
-                } 
-                if (Input.GetKeyDown("left shift"))
-                {
-                    rb.AddForce(transform.up * -4f, ForceMode2D.Impulse);
-                }*/
 
