@@ -35,7 +35,10 @@ public class PlayerController : MonoBehaviour//, IPlayerController
         private float mx;
         private float my;
         private bool postjumpress;
+        private bool grounded;
 
+        [Range(0f, 1f)]
+        public float grounddecay;
      
         // PLAYER STATS
         public float PlayerLife = 3f;
@@ -66,6 +69,7 @@ public class PlayerController : MonoBehaviour//, IPlayerController
             Pstate = Playerstates.LIVING;
 
             postjumpress = true;
+            grounded = false;
 
 
             UnityEngine.Cursor.visible = false;
@@ -79,6 +83,8 @@ public class PlayerController : MonoBehaviour//, IPlayerController
     // BY FRAMERATE TICK REFRESH
     void Update()
     {
+        mx = Input.GetAxisRaw("Horizontal");
+        my = Input.GetAxisRaw("Vertical");
         //Debug.Log(postjumpress);
         //Debug.Log(Pstate.ToString());
 
@@ -111,7 +117,14 @@ public class PlayerController : MonoBehaviour//, IPlayerController
             Debug.Log(Pstate.ToString());
         }
 
-
+        if (Mathf.Abs(mx) > 0)
+        {
+            rb.velocity = new Vector2(mx * PlayerSpeed, rb.velocity.y);
+        }
+        if (Mathf.Abs(my) > 0)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, my * PlayerSpeed);
+        }
 
 
     }
@@ -119,8 +132,6 @@ public class PlayerController : MonoBehaviour//, IPlayerController
     // BY PHYSICS TICK REFRESH
     private void FixedUpdate()
     {
-        mx = Input.GetAxisRaw("Horizontal");
-        rb.velocity = new Vector2(mx, my).normalized * PlayerSpeed;
 
 
         // SWITCH ////////////////////////////////////////////////////////
@@ -133,19 +144,8 @@ public class PlayerController : MonoBehaviour//, IPlayerController
 
 
                 // see default, move normal 
-                rb.gravityScale = 10f;
-                //when the player hits space, JUMP
-                if ((Input.GetAxis("Jump") > .05f) && postjumpress == false)
-                { 
-                        Debug.Log("trying");
-                        postjumpress = true;
-                        jump();
-                        //rb.AddForce(transform.up * JumpHeight, ForceMode2D.Impulse);
-                } 
-                if (Input.GetKeyDown("left shift"))
-                {
-                    rb.AddForce(transform.up * -4f, ForceMode2D.Impulse);
-                }
+                rb.gravityScale = 15f;
+
                 break;
 
             case Playerstates.LIMINAL:
@@ -163,7 +163,7 @@ public class PlayerController : MonoBehaviour//, IPlayerController
 
 
                 rb.gravityScale = 0;
-                my = Input.GetAxisRaw("Vertical");
+                //my = Input.GetAxisRaw("Vertical");
                 // see everything, move GHOST, Closer to DEAD, Touch Ghost
 
                 break;
@@ -188,17 +188,10 @@ public class PlayerController : MonoBehaviour//, IPlayerController
 
 
     // FUNCTIONS
-    private void GatherInput()
+    private void jump()
     {
-
+        rb.AddForce(Vector3.up * JumpHeight);
     }
-
-
-
-
-
-
-
 
 
     private void ActiveHeldObj()
@@ -206,9 +199,22 @@ public class PlayerController : MonoBehaviour//, IPlayerController
 
     }
 
+    private void gravyty()
+    {
+        if (grounded && Input.GetAxis("Horizontal") == 0)
+        {
+            rb.velocity *= grounddecay;
+        }
+    }
 
 
+    private void GatherInput()
+    {
 
+    }
+
+
+ 
 
     // COLLISION HANDLING
     public void OnCollisionEnter2D(Collision2D collision)
@@ -224,7 +230,7 @@ public class PlayerController : MonoBehaviour//, IPlayerController
             }
             if (collision.gameObject.tag == "Ground")
             {
-                postjumpress = false;
+                grounded = false;
 
             }
         }
@@ -232,3 +238,45 @@ public class PlayerController : MonoBehaviour//, IPlayerController
 
     }
 }
+
+
+
+
+
+
+/*
+   public static float RemapFloat(float value, float from1, float to1, float from2, float to2)
+    {
+        return (value - from1) / (to2 - from1) * (to2 - from2)+from2;
+    }
+
+    IEnumerator SetJumpforce(Color c, float t)
+    {
+        while (t >= 0)
+        {
+
+            t -= speed;
+            percentage = RemapFloat(t, 0, time, 0, 1);
+            myMat.color = Color.Lerp(myMat.color, c, 1 - percentage);
+            yield return new WaitForSeconds(speed);
+        }
+        colorChange = false;
+
+    }
+
+ 
+                 //when the player hits space, JUMP
+                /*
+                if ((Input.GetAxis("Jump") > .05f) && postjumpress == false)
+                { 
+                        Debug.Log("trying");
+                        postjumpress = true;
+                        jump();
+                    rb.AddForce(transform.up * JumpHeight, ForceMode2D.Impulse);
+                    //rb.AddForce(Vector3.up * JumpHeight);
+                } 
+                if (Input.GetKeyDown("left shift"))
+                {
+                    rb.AddForce(transform.up * -4f, ForceMode2D.Impulse);
+                }*/
+*/
