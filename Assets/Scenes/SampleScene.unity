@@ -376,6 +376,7 @@ MonoBehaviour:
   sALIVE: {fileID: 21300000, guid: ce734d0c21aac1743957d2c8e08e0415, type: 3}
   sLIMINAL: {fileID: 21300000, guid: 0c85e3cceb0a55c4a9140099f555bb23, type: 3}
   sGHOST: {fileID: 21300000, guid: 63740f595481a80468151139e9a0a225, type: 3}
+  grounddecay: 0.157
   PlayerLife: 3
   PlayerSpeed: 15
   Pstate: 0
