@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using static UnityEditor.VersionControl.Asset;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour//, IPlayerController
 {
     // fuck with people or stop murders before your own time runs out.
     /// TO DO LIST
@@ -19,31 +19,28 @@ public class PlayerController : MonoBehaviour
 
 
 
-    // VARS
-    //movement and control Logic
-    public GameObject renderPLAYER;
+    // VARS   
+        // OBJECT COMPONENTS
+        private Rigidbody2D rb;
+        private CapsuleCollider2D clidr;
+        private SpriteRenderer srpt;
 
+        //movement and control Logic
+        public GameObject renderPLAYER;
         private Vector2 mouse;
         public GameObject cursor;
         public Sprite sALIVE;
         public Sprite sLIMINAL;
         public Sprite sGHOST;
-        private SpriteRenderer srpt;
-        private Rigidbody2D rb;
         private float mx;
         private float my;
         private bool postjumpress;
-        //private bool jump; 
-        public float jumpForce = 300f;
-        public float jumpCooldown = 2f;
-        public float coyoteTime = 1f;
 
-    public bool canJump = true;
-
+     
         // PLAYER STATS
         public float PlayerLife = 3f;
         public float PlayerSpeed = 10f;
-        public float JumpHeight = 10f;
+        private float JumpHeight = 100f;
 
         // States
         public enum Playerstates
@@ -61,12 +58,18 @@ public class PlayerController : MonoBehaviour
         private void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
+            clidr = GetComponent<CapsuleCollider2D>();
             srpt = renderPLAYER.GetComponent<SpriteRenderer>();
+
+            clidr.enabled = true;
             srpt.sprite = sALIVE;
             Pstate = Playerstates.LIVING;
-            UnityEngine.Cursor.visible = false;
+
             postjumpress = true;
-            //jump = false;
+
+
+            UnityEngine.Cursor.visible = false;
+
     }
 
   
@@ -126,14 +129,18 @@ public class PlayerController : MonoBehaviour
         {
             case Playerstates.LIVING:
                 srpt.sprite = sALIVE;
+                clidr.enabled = true;
+
+
                 // see default, move normal 
-                rb.gravityScale = 8;
+                rb.gravityScale = 10f;
                 //when the player hits space, JUMP
-                if (Input.GetAxis("Jump") > .05f && postjumpress)
+                if ((Input.GetAxis("Jump") > .05f) && postjumpress == false)
                 { 
-                        //Debug.Log("trying");
+                        Debug.Log("trying");
                         postjumpress = true;
-                        rb.AddForce(transform.up * JumpHeight, ForceMode2D.Impulse);
+                        jump();
+                        //rb.AddForce(transform.up * JumpHeight, ForceMode2D.Impulse);
                 } 
                 if (Input.GetKeyDown("left shift"))
                 {
@@ -143,12 +150,18 @@ public class PlayerController : MonoBehaviour
 
             case Playerstates.LIMINAL:
                 srpt.sprite = sLIMINAL;
+                clidr.enabled = true;
+
+
                 // see more, move normal ~slower/wobbly
 
                 break;
 
             case Playerstates.GHOST:
                 srpt.sprite = sGHOST;
+                clidr.enabled = false;
+
+
                 rb.gravityScale = 0;
                 my = Input.GetAxisRaw("Vertical");
                 // see everything, move GHOST, Closer to DEAD, Touch Ghost
@@ -195,28 +208,7 @@ public class PlayerController : MonoBehaviour
 
 
 
-    public void Jump()
-    {
-        
-        //when we call the Jump, add an upwards force
-        rb.AddForce(Vector3.up * jumpForce);
-    }
 
-    public IEnumerator JumpCycle(float time)
-    {
-        //code above this line will execute IMMEDIATELY
-        Jump();
-        canJump = false;
-        yield return new WaitForSeconds(time); //wait for exactly TIME seconds
-        canJump = true;
-        //code below this line will execute AFTER the TIME
-    }
-
-    public IEnumerator CoyoteJump(float time)
-    {
-        yield return new WaitForSeconds(time);
-        canJump = false;
-    }
 
     // COLLISION HANDLING
     public void OnCollisionEnter2D(Collision2D collision)
