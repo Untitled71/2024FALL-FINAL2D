@@ -21,13 +21,24 @@ public class PlayerController : MonoBehaviour
 
     // VARS
     //movement and control Logic
-    private Vector2 mouse;
+    public GameObject renderPLAYER;
+
+        private Vector2 mouse;
         public GameObject cursor;
+        public Sprite sALIVE;
+        public Sprite sLIMINAL;
+        public Sprite sGHOST;
+        private SpriteRenderer srpt;
         private Rigidbody2D rb;
         private float mx;
         private float my;
         private bool postjumpress;
         //private bool jump; 
+        public float jumpForce = 300f;
+        public float jumpCooldown = 2f;
+        public float coyoteTime = 1f;
+
+    public bool canJump = true;
 
         // PLAYER STATS
         public float PlayerLife = 3f;
@@ -50,6 +61,8 @@ public class PlayerController : MonoBehaviour
         private void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
+            srpt = renderPLAYER.GetComponent<SpriteRenderer>();
+            srpt.sprite = sALIVE;
             Pstate = Playerstates.LIVING;
             UnityEngine.Cursor.visible = false;
             postjumpress = true;
@@ -112,17 +125,16 @@ public class PlayerController : MonoBehaviour
         switch (Pstate)
         {
             case Playerstates.LIVING:
+                srpt.sprite = sALIVE;
                 // see default, move normal 
-                rb.gravityScale = 10;
-                if (postjumpress != true)
-                {
-                    if (Input.GetKeyDown("space"))
-                    {
+                rb.gravityScale = 8;
+                //when the player hits space, JUMP
+                if (Input.GetAxis("Jump") > .05f && postjumpress)
+                { 
                         //Debug.Log("trying");
                         postjumpress = true;
                         rb.AddForce(transform.up * JumpHeight, ForceMode2D.Impulse);
-                    }
-                }
+                } 
                 if (Input.GetKeyDown("left shift"))
                 {
                     rb.AddForce(transform.up * -4f, ForceMode2D.Impulse);
@@ -130,11 +142,13 @@ public class PlayerController : MonoBehaviour
                 break;
 
             case Playerstates.LIMINAL:
+                srpt.sprite = sLIMINAL;
                 // see more, move normal ~slower/wobbly
 
                 break;
 
             case Playerstates.GHOST:
+                srpt.sprite = sGHOST;
                 rb.gravityScale = 0;
                 my = Input.GetAxisRaw("Vertical");
                 // see everything, move GHOST, Closer to DEAD, Touch Ghost
@@ -150,8 +164,18 @@ public class PlayerController : MonoBehaviour
     }
 
 
+
+
+
+
+
+
+
+
+
+
     // FUNCTIONS
-    private void ActiveHeldObj()
+    private void GatherInput()
     {
 
     }
@@ -159,6 +183,40 @@ public class PlayerController : MonoBehaviour
 
 
 
+
+
+
+
+
+    private void ActiveHeldObj()
+    {
+
+    }
+
+
+
+    public void Jump()
+    {
+        
+        //when we call the Jump, add an upwards force
+        rb.AddForce(Vector3.up * jumpForce);
+    }
+
+    public IEnumerator JumpCycle(float time)
+    {
+        //code above this line will execute IMMEDIATELY
+        Jump();
+        canJump = false;
+        yield return new WaitForSeconds(time); //wait for exactly TIME seconds
+        canJump = true;
+        //code below this line will execute AFTER the TIME
+    }
+
+    public IEnumerator CoyoteJump(float time)
+    {
+        yield return new WaitForSeconds(time);
+        canJump = false;
+    }
 
     // COLLISION HANDLING
     public void OnCollisionEnter2D(Collision2D collision)
