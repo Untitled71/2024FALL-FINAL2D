@@ -29,6 +29,8 @@ public class PlayerController : MonoBehaviour//, IPlayerController
         public GameObject renderPLAYER;
         private Vector2 mouse;
         public GameObject cursor;
+        public BoxCollider2D Groundcheck;
+    public LayerMask groundMask;
         public Sprite sALIVE;
         public Sprite sLIMINAL;
         public Sprite sGHOST;
@@ -43,6 +45,7 @@ public class PlayerController : MonoBehaviour//, IPlayerController
         // PLAYER STATS
         public float PlayerLife = 3f;
         public float PlayerSpeed = 10f;
+    public float JumpSpeed = 5f;
         private float JumpHeight = 100f;
 
         // States
@@ -70,6 +73,7 @@ public class PlayerController : MonoBehaviour//, IPlayerController
 
             postjumpress = true;
             grounded = false;
+            //groundMask = "Ground";
 
 
             UnityEngine.Cursor.visible = false;
@@ -117,14 +121,6 @@ public class PlayerController : MonoBehaviour//, IPlayerController
             Debug.Log(Pstate.ToString());
         }
 
-        if (Mathf.Abs(mx) > 0)
-        {
-            rb.velocity = new Vector2(mx * PlayerSpeed, rb.velocity.y);
-        }
-        if (Mathf.Abs(my) > 0)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, my * PlayerSpeed);
-        }
 
 
     }
@@ -132,7 +128,7 @@ public class PlayerController : MonoBehaviour//, IPlayerController
     // BY PHYSICS TICK REFRESH
     private void FixedUpdate()
     {
-
+        checkground();
 
         // SWITCH ////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////////
@@ -142,9 +138,18 @@ public class PlayerController : MonoBehaviour//, IPlayerController
                 srpt.sprite = sALIVE;
                 clidr.enabled = true;
 
-
+                friction();
                 // see default, move normal 
-                rb.gravityScale = 15f;
+                rb.gravityScale = 7f; 
+                if (Mathf.Abs(mx) > 0)
+                {
+                    rb.velocity = new Vector2(mx * PlayerSpeed, rb.velocity.y);
+                }
+                if (Mathf.Abs(my) > 0 && grounded)
+                {
+                    rb.velocity = new Vector2(rb.velocity.x, my * JumpSpeed);
+                }
+
 
                 break;
 
@@ -154,6 +159,17 @@ public class PlayerController : MonoBehaviour//, IPlayerController
 
 
                 // see more, move normal ~slower/wobbly
+                // seen as crazy
+                rb.gravityScale = 4f; 
+                if (Mathf.Abs(mx) > 0)
+                {
+                    rb.velocity = new Vector2(mx * PlayerSpeed, rb.velocity.y);
+                }
+                if (Mathf.Abs(my) > 0 && grounded)
+                {
+                    rb.velocity = new Vector2(rb.velocity.x, my * JumpSpeed);
+                }
+
 
                 break;
 
@@ -161,10 +177,12 @@ public class PlayerController : MonoBehaviour//, IPlayerController
                 srpt.sprite = sGHOST;
                 clidr.enabled = false;
 
-
                 rb.gravityScale = 0;
-                //my = Input.GetAxisRaw("Vertical");
                 // see everything, move GHOST, Closer to DEAD, Touch Ghost
+                // not seen by anyone alive
+
+                    rb.velocity = new Vector2(mx, my).normalized * PlayerSpeed;
+    
 
                 break;
 
@@ -199,14 +217,18 @@ public class PlayerController : MonoBehaviour//, IPlayerController
 
     }
 
-    private void gravyty()
+    private void friction()
     {
-        if (grounded && Input.GetAxis("Horizontal") == 0)
+        if (grounded && mx == 0 && my == 0)
         {
             rb.velocity *= grounddecay;
         }
     }
 
+    private void checkground()
+    {
+        grounded = Physics2D.OverlapAreaAll(Groundcheck.bounds.min, Groundcheck.bounds.max, groundMask).Length > 0;
+    }
 
     private void GatherInput()
     {
@@ -230,7 +252,7 @@ public class PlayerController : MonoBehaviour//, IPlayerController
             }
             if (collision.gameObject.tag == "Ground")
             {
-                grounded = false;
+                grounded = true;
 
             }
         }
@@ -279,4 +301,4 @@ public class PlayerController : MonoBehaviour//, IPlayerController
                 {
                     rb.AddForce(transform.up * -4f, ForceMode2D.Impulse);
                 }*/
-*/
+
