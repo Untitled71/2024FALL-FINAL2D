@@ -48,7 +48,7 @@ public class PlayerController : MonoBehaviour//, IPlayerController
         public float grounddecay;
 
     // ATTACKING LOGIC
-    private float damage = 1.5f;
+    // private float damage = 1.5f;
     private float atkticker = 0f;
     private float atktime = 1.7f;
 
@@ -129,25 +129,28 @@ public class PlayerController : MonoBehaviour//, IPlayerController
             {   // TRANSFORM!!
                 if (Pstate == Playerstates.LIVING || Pstate == Playerstates.LIMINAL)
                 {
-                     innitialpos = transform.position;
-                    Instantiate(deadbody,transform.position, Quaternion.identity);
+                     innitialpos = transform.position;//
+                    Instantiate(deadbody,transform.position, Quaternion.identity);//
                     prevstate = Pstate;
                     Pstate = Playerstates.GHOST;
                 } else if (Pstate == Playerstates.GHOST)
-                {
-                    Pstate = prevstate;
+            {
+                transform.position = innitialpos;//
+                Pstate = prevstate;
                 }
             }
             if (Input.GetKeyDown("e"))
             {   // TRANSFORM!!
 
-                self.transform.position = innitialpos;
                 if (Pstate == Playerstates.LIVING)
                 {
                     Pstate = Playerstates.LIMINAL;
                 }
-                else 
+                else
                 {
+                    if (Pstate == Playerstates.GHOST) { 
+                    transform.position = innitialpos; //
+                }
                     Pstate = Playerstates.LIVING;
                 }
             }
@@ -277,7 +280,9 @@ public class PlayerController : MonoBehaviour//, IPlayerController
 
             }
         }
+        else if(collision.gameObject.tag == "Ghosts"){
 
+        }
 
     }
 }
