@@ -20,7 +20,8 @@ public class PlayerController : MonoBehaviour//, IPlayerController
 
 
     // VARS   
-        // OBJECT COMPONENTS
+    // OBJECT COMPONENTS
+    private GameObject self;
         private Rigidbody2D rb;
         private CapsuleCollider2D clidr;
         private SpriteRenderer srpt;
@@ -29,19 +30,32 @@ public class PlayerController : MonoBehaviour//, IPlayerController
         public BoxCollider2D Groundcheck;
         public LayerMask groundMask;
         public GameObject renderPLAYER;
+    public GameObject deadbody;
         public Sprite sALIVE;
         public Sprite sLIMINAL;
         public Sprite sGHOST;
         public GameObject cursor;
         private Vector2 mouse;
+        private Vector3 innitialpos;
 
         // MOVEMENT LOGIC
         private float mx;
         private float my;
-        private bool grounded;
 
+        // JUMPING LOGIC
+        private bool grounded;
         [Range(0f, 1f)]
         public float grounddecay;
+
+    // ATTACKING LOGIC
+    private float damage = 1.5f;
+    private float atkticker = 0f;
+    private float atktime = 1.7f;
+
+    public GameObject RenderATK;
+    //public Transform attackPos;
+    //public LayerMask whatisEnemies;
+    //public float attackRange = 10f;
      
         // PLAYER STATS
         public float PlayerLife = 3f;
@@ -63,6 +77,7 @@ public class PlayerController : MonoBehaviour//, IPlayerController
     // DECLARES
         private void Awake()
         {
+            self = GetComponent<GameObject>();
             rb = GetComponent<Rigidbody2D>();
             clidr = GetComponent<CapsuleCollider2D>();
             srpt = renderPLAYER.GetComponent<SpriteRenderer>();
@@ -92,11 +107,20 @@ public class PlayerController : MonoBehaviour//, IPlayerController
             //////////////////////////////////////////////////////////////////
             mouse = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             cursor.transform.position = mouse;
-            if (Input.GetMouseButtonDown(0))
-            {
-                ActiveHeldObj();
+            if ( atkticker <= 0f) {
+                if ((Input.GetMouseButtonDown(0) && Pstate == Playerstates.LIVING))
+                {
+                    Debug.Log("spawmed");
+                    Instantiate(RenderATK, mouse, Quaternion.identity);
+                    //ActiveHeldObj();
+                    /*Collider2D[] enemiesToDamage = Physics2D.OverlapCircleAll(attackPos.position, attackRange, whatisEnemies);
+                    for (int i = 0; i < enemiesToDamage.Length; i++)
+                    {
+                        enemiesToDamage[i].GetComponent<Enemy>().TakeDamage; 
+                    }*/
+                    atkticker = atktime;
             }
-
+            } else { atkticker -= Time.deltaTime; }
 
 
             // INPUTS ////////////////////////////////////////////////////////
@@ -105,6 +129,8 @@ public class PlayerController : MonoBehaviour//, IPlayerController
             {   // TRANSFORM!!
                 if (Pstate == Playerstates.LIVING || Pstate == Playerstates.LIMINAL)
                 {
+                     innitialpos = transform.position;
+                    Instantiate(deadbody,transform.position, Quaternion.identity);
                     prevstate = Pstate;
                     Pstate = Playerstates.GHOST;
                 } else if (Pstate == Playerstates.GHOST)
@@ -114,6 +140,8 @@ public class PlayerController : MonoBehaviour//, IPlayerController
             }
             if (Input.GetKeyDown("e"))
             {   // TRANSFORM!!
+
+                self.transform.position = innitialpos;
                 if (Pstate == Playerstates.LIVING)
                 {
                     Pstate = Playerstates.LIMINAL;
@@ -140,8 +168,10 @@ public class PlayerController : MonoBehaviour//, IPlayerController
                     srpt.sprite = sALIVE;
                     clidr.enabled = true;
 
-                    friction();
-                    // see default, move normal 
+
+                // see default, move normal 
+                // MOVEMENT
+                friction();
                     rb.gravityScale = 7f; 
                     if (Mathf.Abs(mx) > 0)
                     {
@@ -186,6 +216,9 @@ public class PlayerController : MonoBehaviour//, IPlayerController
                         rb.velocity = new Vector2(mx, my).normalized * PlayerSpeed;
     
 
+                    // 
+                    
+
                     break;
 
                 case Playerstates.DEAD:
@@ -207,22 +240,23 @@ public class PlayerController : MonoBehaviour//, IPlayerController
 
 
 
-
     }
 
     // PASSIVES
-    private void friction()
-    {
-        if (grounded && mx == 0 && my == 0)
+        // walking
+        private void friction()
         {
-            rb.velocity *= grounddecay;
+            if (grounded && mx == 0 && my == 0)
+            {
+                rb.velocity *= grounddecay;
+            }
         }
-    }
-
-    private void checkground()
-    {
-        grounded = Physics2D.OverlapAreaAll(Groundcheck.bounds.min, Groundcheck.bounds.max, groundMask).Length > 0;
-    }
+        private void checkground()
+        {
+            grounded = Physics2D.OverlapAreaAll(Groundcheck.bounds.min, Groundcheck.bounds.max, groundMask).Length > 0;
+        }
+        
+        // attack
 
 
     // COLLISION HANDLING
