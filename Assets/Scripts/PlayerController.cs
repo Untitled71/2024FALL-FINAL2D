@@ -138,7 +138,8 @@ public class PlayerController : MonoBehaviour//, IPlayerController
             {
                 transform.position = innitialpos;//
                 Pstate = prevstate;
-                }
+                rb.velocity += new Vector2(0, -3);
+            }
             }
             if (Input.GetKeyDown("e"))
             {   // TRANSFORM!!
@@ -153,7 +154,8 @@ public class PlayerController : MonoBehaviour//, IPlayerController
                     transform.position = innitialpos; //
                 }
                     Pstate = Playerstates.LIVING;
-                }
+                rb.velocity += new Vector2(0, -3);
+            }
             }
 
 
