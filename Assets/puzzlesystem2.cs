@@ -3,19 +3,18 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class puzzlesystem1 : MonoBehaviour
+public class puzzlesystem2 : MonoBehaviour
 {
 
     public GameObject Player;
     public bool display;
     public GameObject button1;
     public GameObject button2;
-    public GameObject button3;
-    public GameObject button4;
-    public GameObject button5;
 
-    public GameObject objecttomove;
-    public Transform gohere;
+    public GameObject objecttomove1;
+    public Transform gohere1;
+    public GameObject objecttomove2;
+    public Transform gohere2;
     private void Awake()
     {
         display = Player.GetComponent<PlayerController>().seeghosts;
@@ -45,26 +44,14 @@ public class puzzlesystem1 : MonoBehaviour
 
         if (button1.GetComponent<button>().pulse == true)
         {
-            button1.GetComponent<MeshRenderer>().enabled = true;
-            if (button5.GetComponent<button>().pulse == true)
-            {
-                button5.GetComponent<MeshRenderer>().enabled = true;
-                if (button2.GetComponent<button>().pulse == true)
-                {
-                    button2.GetComponent<MeshRenderer>().enabled = true;
-                    if (button4.GetComponent<button>().pulse == true)
-                    {
-                        button4.GetComponent<MeshRenderer>().enabled = true;
-                        if (button3.GetComponent<button>().pulse == true)
-                        {
-                            button3.GetComponent<MeshRenderer>().enabled = true;
-                            objecttomove.transform.position = gohere.position;
-                        }
-                    }
-                }
-            }
+            objecttomove1.transform.position = gohere1.transform.position;
+
         }
- 
+        if (button2.GetComponent<button>().pulse == true)
+        {
+            objecttomove2.transform.position = gohere2.transform.position;
+
+        }
 
     }
 }
