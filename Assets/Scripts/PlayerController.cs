@@ -50,7 +50,7 @@ public class PlayerController : MonoBehaviour//, IPlayerController
     // ATTACKING LOGIC
     // private float damage = 1.5f;
     private float atkticker = 0f;
-    private float atktime = 1.7f;
+    private float atktime = .7f;
 
     public GameObject RenderATK;
     //public Transform attackPos;
@@ -61,6 +61,7 @@ public class PlayerController : MonoBehaviour//, IPlayerController
         public float PlayerLife = 3f;
         public float PlayerSpeed = 10f;
         public float JumpSpeed = 5f;
+        public bool seeghosts = false;
 
         // STATES (FSM)
         public enum Playerstates
@@ -185,7 +186,7 @@ public class PlayerController : MonoBehaviour//, IPlayerController
                         rb.velocity = new Vector2(rb.velocity.x, my * JumpSpeed);
                     }
 
-
+                seeghosts = false;
                     break;
 
                 case Playerstates.LIMINAL:
@@ -205,7 +206,7 @@ public class PlayerController : MonoBehaviour//, IPlayerController
                         rb.velocity = new Vector2(rb.velocity.x, my * JumpSpeed);
                     }
 
-
+                seeghosts = false;
                     break;
 
                 case Playerstates.GHOST:
@@ -217,10 +218,10 @@ public class PlayerController : MonoBehaviour//, IPlayerController
                     // not seen by anyone alive
 
                         rb.velocity = new Vector2(mx, my).normalized * PlayerSpeed;
-    
 
-                    // 
-                    
+
+                // 
+                seeghosts = true;
 
                     break;
 

@@ -6,7 +6,7 @@ TagManager:
   tags:
   - Ground
   - Ghosts
-  - ineteract
+  - actor
   layers:
   - Default
   - TransparentFX
