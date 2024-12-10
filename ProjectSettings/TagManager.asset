@@ -7,6 +7,7 @@ TagManager:
   - Ground
   - Ghosts
   - actor
+  - enemy
   layers:
   - Default
   - TransparentFX

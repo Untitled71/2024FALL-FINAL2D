@@ -42,7 +42,7 @@ public class door : MonoBehaviour
         }
         else
         {
-            GetComponent<SpriteRenderer>().enabled = false;
+            GetComponent<SpriteRenderer>().enabled = true;
         }
 
         if (pulse == true)

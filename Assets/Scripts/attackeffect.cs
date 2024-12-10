@@ -11,7 +11,7 @@ public class attackeffect : MonoBehaviour
     public void OnCollisionEnter2D(Collision2D collision)
     {
 
-
+        Debug.Log("hit");
         if (collision.gameObject.tag == "enemy")
         {
             Destroy(collision.gameObject);
@@ -19,6 +19,15 @@ public class attackeffect : MonoBehaviour
         }
         //Destroy(gameObject);
 
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.gameObject.tag == "enemy")
+        {
+            Destroy(other.gameObject);
+            Destroy(gameObject);
+        }
     }
 
     private void Update()
