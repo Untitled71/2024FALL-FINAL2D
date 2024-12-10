@@ -278,7 +278,8 @@ public class PlayerController : MonoBehaviour//, IPlayerController
             if(ghosttimeallowed <= 0)
             {
                 Pstate = Playerstates.LIVING;
-            }
+            transform.position = innitialpos;
+        }
         }
 
 

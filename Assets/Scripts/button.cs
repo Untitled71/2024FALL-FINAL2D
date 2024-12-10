@@ -8,6 +8,7 @@ public class button : MonoBehaviour
     public bool display;
     public bool pulse;
     public float timelast;
+    public Collider2D cd2d;
 
 
     // Start is called before the first frame update
@@ -16,6 +17,9 @@ public class button : MonoBehaviour
         pulse = false;
         timelast = 5.0f;
         display = Player.GetComponent<PlayerController>().seeghosts;
+        cd2d = GetComponent<Collider2D>();
+        cd2d.isTrigger = true;
+
     }
 
     // Update is called once per frame
@@ -52,11 +56,20 @@ public class button : MonoBehaviour
         if ( collision.gameObject.tag == "actor")
         {
             pulse = true;
-            Debug.Log("pulsing");
+            //Debug.Log("pulsing");
         }
     }
 
 
 
-
+  
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        Debug.Log("collidered button");
+        if (other.gameObject.tag == "actor")
+        {
+            pulse = true;
+            //.Log("pulsing");
+        }
+    }
 }
