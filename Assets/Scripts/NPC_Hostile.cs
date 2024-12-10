@@ -31,8 +31,8 @@ public class NPC_Hostile : MonoBehaviour
         distance1 = Vector3.Distance(transform.position, position1.position);
         distance2 = Vector3.Distance(transform.position, position2.position);
 
-        Debug.Log("Distance1" + distance1);
-        Debug.Log("Distance2" + distance2);
+        //Debug.Log("Distance1" + distance1);
+        //Debug.Log("Distance2" + distance2);
         if (distance1 <= 2 )
         {
             goforward = true;

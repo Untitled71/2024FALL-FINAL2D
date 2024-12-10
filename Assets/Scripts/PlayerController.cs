@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.UI;
 //using static UnityEditor.VersionControl.Asset;
 
 public class PlayerController : MonoBehaviour//, IPlayerController
@@ -37,6 +39,12 @@ public class PlayerController : MonoBehaviour//, IPlayerController
         public GameObject cursor;
         private Vector2 mouse;
         private Vector3 innitialpos;
+    public TextMeshProUGUI Ghosttext;
+
+    public Transform Rotatorattackthing;
+    public Transform AttackPoint;
+
+    public float ghosttimeallowed;
 
         // MOVEMENT LOGIC
         private float mx;
@@ -49,10 +57,15 @@ public class PlayerController : MonoBehaviour//, IPlayerController
 
     // ATTACKING LOGIC
     // private float damage = 1.5f;
+    // LEFT
     private float atkticker = 0f;
     private float atktime = .7f;
+    // RIGHT
+    private float atkticker2 = 0f;
+    private float atktime2 = .3f;
 
     public GameObject RenderATK;
+    public GameObject RenderATK2;
     //public Transform attackPos;
     //public LayerMask whatisEnemies;
     //public float attackRange = 10f;
@@ -87,6 +100,7 @@ public class PlayerController : MonoBehaviour//, IPlayerController
             srpt.sprite = sALIVE;
             Pstate = Playerstates.LIVING;
 
+        ghosttimeallowed = 10f;
             grounded = false;
             //groundMask = "Ground";
 
@@ -101,17 +115,22 @@ public class PlayerController : MonoBehaviour//, IPlayerController
         // BY FRAMERATE TICK REFRESH
         void Update()
         {
+        Ghosttext.text = "Ghost Timer: " + ghosttimeallowed;
+
             mx = Input.GetAxisRaw("Horizontal");
             my = Input.GetAxisRaw("Vertical");
-
-            // MOUSE /////////////////////////////////////////////////////////
-            //////////////////////////////////////////////////////////////////
-            mouse = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        
+             float angle = Mathf.Atan2(mouse.y - transform.position.y, mouse.x - transform.position.x) * Mathf.Rad2Deg - 90f;
+            Rotatorattackthing.localRotation = Quaternion.Euler(0, 0, angle + 90);
+        AttackPoint.rotation = Rotatorattackthing.rotation;
+        // MOUSE /////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////
+        mouse = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             cursor.transform.position = mouse;
             if ( atkticker <= 0f) {
-                if ((Input.GetMouseButtonDown(0) && Pstate == Playerstates.LIVING))
+                if ((Input.GetMouseButtonDown(1) && Pstate == Playerstates.LIVING))
                 {
-                    Debug.Log("spawmed");
+                    //Debug.Log("spawmed");
                     Instantiate(RenderATK, mouse, Quaternion.identity);
                     //ActiveHeldObj();
                     /*Collider2D[] enemiesToDamage = Physics2D.OverlapCircleAll(attackPos.position, attackRange, whatisEnemies);
@@ -122,11 +141,27 @@ public class PlayerController : MonoBehaviour//, IPlayerController
                     atkticker = atktime;
             }
             } else { atkticker -= Time.deltaTime; }
+            
+        if (atkticker2 <= 0f)
+        {
+            if ((Input.GetMouseButtonDown(0) && Pstate == Playerstates.LIMINAL))
+            {
+                Debug.Log("L clicked");
+                Instantiate(RenderATK2, AttackPoint.position, AttackPoint.rotation);
+                //ActiveHeldObj();
+                /*Collider2D[] enemiesToDamage = Physics2D.OverlapCircleAll(attackPos.position, attackRange, whatisEnemies);
+                for (int i = 0; i < enemiesToDamage.Length; i++)
+                {
+                    enemiesToDamage[i].GetComponent<Enemy>().TakeDamage; 
+                }*/
+                atkticker2 = atktime2;
+            }
+        }
+        else { atkticker2 -= Time.deltaTime; }
 
-
-            // INPUTS ////////////////////////////////////////////////////////
-            //////////////////////////////////////////////////////////////////
-            if (Input.GetKeyDown("q"))
+        // INPUTS ////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////
+        if (Input.GetKeyDown("q"))
             {   // TRANSFORM!!
                 if (Pstate == Playerstates.LIVING || Pstate == Playerstates.LIMINAL)
                 {
@@ -189,7 +224,11 @@ public class PlayerController : MonoBehaviour//, IPlayerController
                     }
 
                 seeghosts = false;
-                    break;
+                if (ghosttimeallowed <= 10)
+                {
+                    ghosttimeallowed += Time.deltaTime *2;
+                }
+                break;
 
                 case Playerstates.LIMINAL:
                     srpt.sprite = sLIMINAL;
@@ -209,7 +248,8 @@ public class PlayerController : MonoBehaviour//, IPlayerController
                     }
 
                 seeghosts = false;
-                    break;
+                ghosttimeallowed -= Time.deltaTime * 2;
+                break;
 
                 case Playerstates.GHOST:
                     srpt.sprite = sGHOST;
@@ -224,14 +264,20 @@ public class PlayerController : MonoBehaviour//, IPlayerController
 
                 // 
                 seeghosts = true;
+                ghosttimeallowed -= Time.deltaTime;
 
-                    break;
+                break;
 
                 case Playerstates.DEAD:
                     // Zombie?
 
                     break;
 
+            }
+
+            if(ghosttimeallowed <= 0)
+            {
+                Pstate = Playerstates.LIVING;
             }
         }
 
